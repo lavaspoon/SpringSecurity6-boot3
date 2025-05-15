@@ -3,21 +3,22 @@ package devlava.springsecurity6.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
-@Table(name = "users")
+@Table(name = "TB_MEMBER")
 @Getter
-@Setter
 @NoArgsConstructor
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(length = 50)
+    private String skid;
 
-    @Column(unique = true, nullable = false)
+    @Column(length = 50)
     private String username;
 
-    @Column(nullable = false)
-    private String role;
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private Role role;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private Token token;
 }

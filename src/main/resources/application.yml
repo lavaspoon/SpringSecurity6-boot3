@@ -1,7 +1,7 @@
 spring:
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: create-drop
     show-sql: true
     properties:
       hibernate:
@@ -9,6 +9,9 @@ spring:
         format_sql: true
     defer-datasource-initialization: true
     open-in-view: false
+  sql:
+    init:
+      mode: always
 
   h2:
     console:

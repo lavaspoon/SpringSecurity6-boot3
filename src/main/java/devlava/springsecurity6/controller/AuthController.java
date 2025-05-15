@@ -1,5 +1,7 @@
 package devlava.springsecurity6.controller;
 
+import devlava.springsecurity6.dto.LoginRequest;
+import devlava.springsecurity6.dto.RefreshTokenRequest;
 import devlava.springsecurity6.entity.User;
 import devlava.springsecurity6.repository.UserRepository;
 import devlava.springsecurity6.security.JwtTokenProvider;
@@ -9,6 +11,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,14 +31,18 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
-        User user = userRepository.findByUsername(loginRequest.getUsername())
+        User user = userRepository.findBySkid(loginRequest.getSkid())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // 비밀번호 검증 없이 바로 인증 객체 생성
+        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+                user.getSkid(),
+                "", // 빈 비밀번호
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().getRoleName())));
+
         Authentication authentication = new UsernamePasswordAuthenticationToken(
-                user.getUsername(),
+                userDetails,
                 null,
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole())));
+                userDetails.getAuthorities());
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -58,43 +65,27 @@ public class AuthController {
         }
 
         String username = tokenProvider.getUsernameFromToken(refreshToken);
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findBySkid(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+                user.getSkid(),
+                "", // 빈 비밀번호
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().getRoleName())));
+
         Authentication authentication = new UsernamePasswordAuthenticationToken(
-                user.getUsername(),
+                userDetails,
                 null,
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole())));
+                userDetails.getAuthorities());
 
         String newAccessToken = tokenProvider.generateAccessToken(authentication);
 
         Map<String, String> response = new HashMap<>();
         response.put("accessToken", newAccessToken);
+        response.put("refreshToken", refreshToken);
+        response.put("username", username);
+        response.put("role", user.getRole().getRoleName());
 
         return ResponseEntity.ok(response);
-    }
-}
-
-class LoginRequest {
-    private String username;
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-}
-
-class RefreshTokenRequest {
-    private String refreshToken;
-
-    public String getRefreshToken() {
-        return refreshToken;
-    }
-
-    public void setRefreshToken(String refreshToken) {
-        this.refreshToken = refreshToken;
     }
 }

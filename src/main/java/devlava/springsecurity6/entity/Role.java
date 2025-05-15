@@ -3,22 +3,20 @@ package devlava.springsecurity6.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
-@Table(name = "refresh_tokens")
+@Table(name = "TB_ROLE")
 @Getter
-@Setter
 @NoArgsConstructor
-public class RefreshToken {
+public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String token;
+    @Column(length = 20)
+    private String roleName;
 
     @OneToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @JoinColumn(name = "user_skid")
     private User user;
 }

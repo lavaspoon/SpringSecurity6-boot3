@@ -20,7 +20,7 @@ class UserRepositoryTest {
         //given
 
         //when
-        User user = userRepository.findByUsername("admin").orElseThrow();
+        User user = userRepository.findBySkid("user1").orElseThrow();
         //then
         System.out.println("user = " + user);
     }
